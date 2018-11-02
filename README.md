@@ -20,7 +20,7 @@
 
 ## 仓库目录
 ### 并发基础
-- [并发基础]()
+- [并发基础](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/并发基础.md)
 
 ### 线程安全性
 
