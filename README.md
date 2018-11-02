@@ -24,4 +24,4 @@
 
 - [线程安全性](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E6%80%A7.md)
 
-- [线程安全性相关代码]
+- [线程安全性相关代码](https://github.com/DuHouAn/ConcurrencyNotes/tree/master/src/main/java/code_00_threadSafe/atomic)
