@@ -1,5 +1,7 @@
 package code_00_threadSafe.atomic;
 
+import annoations.ThreadSafe;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,6 +11,7 @@ import java.util.concurrent.atomic.LongAdder;
 /**
  * Created by 18351 on 2018/11/2.
  */
+@ThreadSafe
 public class Code_01_LongAdderDemo {
     // 请求总数
     public static int clientTotal = 5000;
