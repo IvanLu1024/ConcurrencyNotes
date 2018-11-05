@@ -31,3 +31,5 @@
 ### 安全发布对象
 
 - [安全发布对象](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/%E5%AE%89%E5%85%A8%E5%8F%91%E5%B8%83%E5%AF%B9%E8%B1%A1.md)
+
+- [安全发布对象相关代码](https://github.com/DuHouAn/ConcurrencyNotes/tree/master/src/main/java/code_01_publishObject)
