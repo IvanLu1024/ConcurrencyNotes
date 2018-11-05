@@ -27,3 +27,7 @@
 - [线程安全性](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E6%80%A7.md)
 
 - [线程安全性相关代码](https://github.com/DuHouAn/ConcurrencyNotes/tree/master/src/main/java/code_00_threadSafe/atomic)
+
+### 安全对象发布
+
+- [安全对象发布](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/%E5%AE%89%E5%85%A8%E5%AF%B9%E8%B1%A1%E5%8F%91%E5%B8%83.md)
