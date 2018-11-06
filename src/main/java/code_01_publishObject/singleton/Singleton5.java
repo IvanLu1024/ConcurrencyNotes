@@ -1,15 +1,12 @@
 package code_01_publishObject.singleton;
 
-import annoations.NotRecommend;
-import annoations.ThreadSafe;
-
 /**
  * 懒汉式
  * 双重同步锁机制
  * TODO:单例实例在第一次使用时进行创建
  */
-@ThreadSafe
-@NotRecommend
+//@ThreadSafe
+//@NotRecommend
 public class Singleton5 {
     private Singleton5(){}
 

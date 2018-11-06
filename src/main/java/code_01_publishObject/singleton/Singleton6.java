@@ -1,14 +1,11 @@
 package code_01_publishObject.singleton;
 
-import annoations.NotThreadSafe;
-import annoations.ThreadSafe;
-
 /**
  * 懒汉式
  *
  * 不同的静态代码块是按照顺序执行的
  */
-@ThreadSafe
+//@ThreadSafe
 public class Singleton6 {
     private Singleton6(){}
 

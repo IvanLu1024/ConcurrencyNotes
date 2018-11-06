@@ -1,13 +1,12 @@
 package code_01_publishObject;
 
-import annoations.NotThreadSafe;
 import java.util.Arrays;
 
 /**
  * Created by 18351 on 2018/11/5.
  * 不安全的对象发布
  */
-@NotThreadSafe
+//@NotThreadSafe
 public class Code_00_UnsafePublish {
     private String[] arr={"1","2","3"};
 

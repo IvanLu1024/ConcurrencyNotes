@@ -1,6 +1,5 @@
 package code_01_publishObject.singleton;
 
-import annoations.ThreadSafe;
 
 /**
  * 饿汉式
@@ -11,7 +10,7 @@ import annoations.ThreadSafe;
  * 2.如果创建出来的实例要很久以后才被调用，那么会导致资源的浪费
  * @author
  */
-@ThreadSafe
+//@ThreadSafe
 public class Singleton2 {
     private Singleton2(){}
 

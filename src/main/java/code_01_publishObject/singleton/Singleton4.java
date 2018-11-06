@@ -1,13 +1,11 @@
 package code_01_publishObject.singleton;
 
-import annoations.NotThreadSafe;
-
 /**
  * 懒汉式
  * 双重同步锁机制
  * TODO:单例实例在第一次使用时进行创建
  */
-@NotThreadSafe
+//@NotThreadSafe
 public class Singleton4 {
     private Singleton4(){}
 

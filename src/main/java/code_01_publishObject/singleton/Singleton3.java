@@ -1,15 +1,12 @@
 package code_01_publishObject.singleton;
 
-import annoations.NotRecommend;
-import annoations.ThreadSafe;
-
 /**
  * 懒汉式
  * TODO:单例实例在第一次使用时进行创建
  * 使用synchronied会十分影响性能，所以并不推荐
  */
-@ThreadSafe
-@NotRecommend
+//@ThreadSafe
+//@NotRecommend
 public class Singleton3 {
     private Singleton3(){}
 
