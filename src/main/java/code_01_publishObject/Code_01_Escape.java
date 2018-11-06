@@ -8,7 +8,11 @@ public class Code_01_Escape {
     private int thisCanBeEscape=0;
 
     public Code_01_Escape(){
-        new InnerClass();
+        //this 引用溢出
+        //Code_01_Escape的构造方法中有InnerClass对象
+        //InnerClass内部可以使用Code_01_Escape的this引用
+        //如果this引用在构造方法中，被别的对象使用到，这样的this引用所指的对象被认为是没有正确构建的。
+        new InnerClass(); //内部类实例
     }
 
     /**
@@ -27,5 +31,6 @@ public class Code_01_Escape {
 
     public static void main(String[] args) {
         Code_01_Escape escape=new Code_01_Escape();
+        String
     }
 }
