@@ -1,8 +1,6 @@
 package code_01_publishObject;
 
 import annoations.NotThreadSafe;
-import annoations.ThreadSafe;
-
 import java.util.Arrays;
 
 /**
