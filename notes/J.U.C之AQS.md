@@ -1,3 +1,20 @@
+<!-- GFM-TOC -->
+* [J.U.C之AQS](#J.U.C之AQS)
+    * [介绍](#介绍)
+    * [设计原理](#设计原理)
+    * [具体实现思路](#具体实现思路)
+    * [同步组件](#同步组件)
+    * [CountDownLatch](#CountDownLatch)
+    * [Semaphore](#Semaphore)
+    * [CyclicBarrier](#CyclicBarrier)
+    * [ReentrantLock](#ReentrantLock)
+    * [ReentrantReadWriteLock](#ReentrantReadWriteLock)    
+    * [StampedLock](#StampedLock)
+    * [Condition](#Condition)
+    * [总结](#总结)
+    
+<!-- GFM-TOC -->
+
 # J.U.C之AQS
 ## 介绍
 Java从1.5之后引入了JUC包，这个包大大提升了并发执行的性能，而AQS就JUC的核心。
@@ -459,7 +476,7 @@ public class LockExample2 {
 它控制锁有三种模式：写、读和**乐观读**
 状态由版本和模式两个部分组成，锁获取方法是一个数字，作为票据
 （Stamped）。它用相应的锁的状态来表示和控制当前的访问
-数字0表示没有写锁被授权访问；
+数字0表示没有写锁被授权访问。
 
 在读锁上分为悲观读和乐观读；
 乐观读：如果读的操作很多，写操作很少的情况下，我们可以乐观的认为，读写同时发生的几率很小，因此不悲观的使用读取锁定很小，
