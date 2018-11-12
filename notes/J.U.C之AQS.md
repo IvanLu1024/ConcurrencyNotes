@@ -4,13 +4,14 @@
     * [设计原理](#设计原理)
     * [具体实现思路](#具体实现思路)
     * [同步组件](#同步组件)
-    * [CountDownLatch](#CountDownLatch)
-    * [Semaphore](#Semaphore)
-    * [CyclicBarrier](#CyclicBarrier)
-    * [ReentrantLock](#ReentrantLock)
-    * [ReentrantReadWriteLock](#ReentrantReadWriteLock)    
-    * [StampedLock](#StampedLock)
-    * [Condition](#Condition)
+        * [CountDownLatch](#CountDownLatch)
+        * [Semaphore](#Semaphore)
+        * [CyclicBarrier](#CyclicBarrier)
+    * [JUC下的锁](#JUC下的锁)
+        * [ReentrantLock](#ReentrantLock)
+        * [ReentrantReadWriteLock](#ReentrantReadWriteLock)    
+        * [StampedLock](#StampedLock)
+        * [Condition](#Condition)
     * [总结](#总结)
     
 <!-- GFM-TOC -->
@@ -48,32 +49,32 @@ AQS：AbstractQueuedSynchronizer，即队列同步器。
 3. 当持有锁的线程释放锁的时候，会唤醒队列中的后继线程。
 
 基于以上思路，JDK中实现了我们常用的AQS的子类。
+
 ## 同步组件
-* CountDownLatch：是一个闭锁，通过一个计数来保证线程是否需要一直阻塞。
-* Semaphore：能够控制同一时间并发线程的数目
-* CyclicBarrier：与CountDownLatch功能比较类似，都能够阻塞进程。
-* ReentrantLock
-* Condition
-* FutureTask
-## CountDownLatch
-![](pics/aqs/AQS_02.png)
+### CountDownLatch
+用来控制一个线程等待多个线程。
 
-它是一个同步辅助类，通过它可以完成类似于阻塞当前线程的功能，换而言之就是一个线程或者多个线程等待直到其他线程执行的操作完成。
-CountDownLatch它用了一个给定的计数器来进行初始化，该计数器的操作是原子操作（同时只能有一个线程来操作该计数器），调用类的`await()`方法会一直处于阻塞状态，
-直到其它线程调用`countDown()`使得当前计数器的值为0的时候，每次调用`countDown()`的时候计数器会减1。当计数器的值变为0的时候，所有因调用`await()`方法而阻塞的
-线程就会继续往下执行。这种操作只能被执行一次，因为该计数器是不能被重置的。如果使用的时候需要可重置的计数器可以考虑使用`CyclicBarrier`。
-### 使用场景
-1. 程序执行需要等待某个条件完成后，才能进行后面的操作。比如父任务等待所有子任务都完成的时候，在继续往下进行
-- 实例1：基本用法
+维护了一个计数器 cnt，每次调用 countDown() 方法会让计数器的值减 1，减到 0 的时候，
+那些因为调用 await() 方法而在等待的线程就会被唤醒。
+
+<div align="center"><img src="pics//aqs//AQS_02.png" width="600"></div>
+
+#### 使用场景
+* 场景1：
+ 
+程序执行需要等待某个条件完成后，才能进行后面的操作。比如父任务等待所有子任务都完成的时候，
+再继续往下进行。
+
 ```java
-public class CountDownLatchExample {
-
-    private static int threadCount=200;
+public class CountDownLatchEaample {
+    //线程数量
+    private static int threadCount=10;
 
     public static void main(String[] args) throws InterruptedException {
         ExecutorService executorService= Executors.newCachedThreadPool();
 
         final CountDownLatch countDownLatch=new CountDownLatch(threadCount);
+
 
         for (int i = 0; i < threadCount; i++) {
             final int threadNum=i;
@@ -89,33 +90,49 @@ public class CountDownLatchExample {
             });
         }
         countDownLatch.await();
+        //上面的所有线程都执行完了,再执行主线程
         System.out.println("Finished!");
         executorService.shutdown();
-
-
     }
 
     private static void test(int threadNum) throws InterruptedException {
         Thread.sleep(100);
-        System.out.println(threadNum);
+        System.out.println("run: "+threadNum);
         Thread.sleep(100);
     }
 }
+/**
+ 输出结果： 
+ run: 0
+ run: 2
+ run: 4
+ run: 3
+ run: 1
+ run: 6
+ run: 5
+ run: 9
+ run: 7
+ run: 8
+ Finished!
+ */
 ```
-- 实例2：指定执行时间的情况，超过这个任务就不继续等待了，完成多少算多少。
-```java
-public class CountDownLatchExample1 {
 
-    private static int threadCount=200;
+* 场景2：
+
+指定执行时间的情况，超过这个任务就不继续等待了，完成多少算多少。
+```java
+public class CountDownLatchEaample2 {
+    //线程数量
+    private static int threadCount=10;
 
     public static void main(String[] args) throws InterruptedException {
         ExecutorService executorService= Executors.newCachedThreadPool();
 
         final CountDownLatch countDownLatch=new CountDownLatch(threadCount);
 
+
         for (int i = 0; i < threadCount; i++) {
             final int threadNum=i;
-
             executorService.execute(()->{
                 try {
                     test(threadNum);
@@ -128,235 +145,359 @@ public class CountDownLatchExample1 {
             });
         }
         countDownLatch.await(10, TimeUnit.MILLISECONDS);
+        //上面线程如果在10 内未完成，则有可能会执行主线程
         System.out.println("Finished!");
         //不会立马关闭线程池，而是等待当前线程全部执行完再关闭线程池。
         executorService.shutdown();
-        
     }
 
     private static void test(int threadNum) throws InterruptedException {
-        Thread.sleep(5);
-        System.out.println(threadNum);
-
+        Thread.sleep(10);
+        System.out.println("run: "+threadNum);
     }
 }
+/**
+ 输出结果：
+ run: 0
+ run: 1
+ run: 2
+ run: 3
+ run: 4
+ Finished!
+ run: 7
+ run: 8
+ run: 6
+ run: 9
+ run: 5
+ */
 ```
-## Semaphore
-![](pics/aqs/AQS_03.png)
+### Semaphore
 
 Semaphore:信号量，用来控制并发线程的个数，与操作系统中的信号量的概念类似。
+
 其中有`acquire()`方法，用来获取资源，`release()`方法用来释放资源。Semaphore维护了当前访问的个数，通过提供**同步机制**来控制同时访问的个数。
-### 使用场景
-1. 仅能提供有限访问的资源：比如数据库的连接数最大只有20，而上层的并发数远远大于20，这时候如果不做限制，
-可能会由于无法获取连接而导致并发异常，这时候可以使用Semaphore来进行控制，当信号量设置为1的时候，就和单线程很相似了
-- 实例：每次获取一个许可
+
+<div align="center"><img src="pics//aqs//AQS_03.png" width="600"></div>
+
+
+#### 使用场景
+* 场景1： 
+
+仅能提供有限访问的资源：比如数据库的连接数最大只有20，而上层的并发数远远大于20，这时候如果不作限制，
+可能会由于无法获取连接而导致并发异常，这时候可以使用Semaphore来进行控制，当信号量设置为1的时候，就和单线程很相似了。
+
 ```java
-@Slf4j
+//每次获取一个许可
 public class SemaphoreExample {
+    private static int clientCount = 3;
+    private static int totalRequestCount = 10;
 
-    private static int threadCount=20;
-
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         ExecutorService executorService= Executors.newCachedThreadPool();
 
-        final Semaphore semaphore=new Semaphore(5);
+        final Semaphore semaphore=new Semaphore(clientCount);
 
-
-
-        for (int i = 0; i < threadCount; i++) {
+        for(int i=0;i<totalRequestCount;i++){
             final int threadNum=i;
-            executorService.execute(()->{
-                try {
-                    semaphore.acquire();    //获取一个许可
-                    test(threadNum);
-                    semaphore.release();    //释放一个许可
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            });
-        }
-        executorService.shutdown();
-
-
-    }
-
-    private static void test(int threadNum) throws InterruptedException {
-        log.info("{}",threadNum);
-        Thread.sleep(1000);
-    }
-}
-```
-- 实例2：每次获取多个许可
-```java
-@Slf4j
-public class SemaphoreExample1 {
-
-    private static int threadCount=20;
-
-    public static void main(String[] args) throws InterruptedException {
-        ExecutorService executorService= Executors.newCachedThreadPool();
-
-        final Semaphore semaphore=new Semaphore(3);
-
-
-
-        for (int i = 0; i < threadCount; i++) {
-            final int threadNum=i;
-            executorService.execute(()->{
-                try {
-                    semaphore.acquire(3);    //获取一个许可
-                    test(threadNum);
-                    semaphore.release(3);    //释放一个许可
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            });
-        }
-        executorService.shutdown();
-
-
-    }
-
-    private static void test(int threadNum) throws InterruptedException {
-        log.info("{}",threadNum);
-        Thread.sleep(1000);
-    }
-}
-```
-- 实例3：尝试获取许可
-```java
-@Slf4j
-public class SemaphoreExample2 {
-
-    private static int threadCount=20;
-
-    public static void main(String[] args) throws InterruptedException {
-        ExecutorService executorService= Executors.newCachedThreadPool();
-
-        final Semaphore semaphore=new Semaphore(5);
-
-
-
-        for (int i = 0; i < threadCount; i++) {
-            final int threadNum=i;
-            executorService.execute(()->{
-                try {
-                    if (semaphore.tryAcquire()){//尝试获取一个许可
-                        test(threadNum);
-                        semaphore.release();    //释放一个许可
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        //获取一个许可
+                       semaphore.acquire();
+                       test(threadNum);
+                    }catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }finally {
+                        semaphore.release();
+                        //释放一个许可
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
-
             });
         }
         executorService.shutdown();
-
-
     }
 
     private static void test(int threadNum) throws InterruptedException {
-        log.info("{}",threadNum);
+        System.out.println("run:"+threadNum);
         Thread.sleep(1000);
     }
 }
+/**
+ 输出结果：
+ 每隔一秒输出3个
+ run:0
+ run:2
+ run:1
+
+ run:4
+ run:3
+ run:5
+
+ run:6
+ run:7
+ run:8
+
+ run:9
+ * */
 ```
-## CyclicBarrier
-![](pics/aqs/AQS_04.png)
+* 场景2：
 
-CyclicBarrier也是一个同步辅助类，它允许一组线程相互等待，直到到达某个公共的屏障点(Common barrier point)。
-通过它可以完成线程之间的相互等待，只有当每个线程都准备就绪后，才能各自继续往下执行。
-与CountDownLatch有些相似的地方，都是通过计数器来实现的。
-
-当某线程执行了`await()`方法的时候，进入了等待状态，计数器执行了加1的操作。
-当计数器的值达到我们设置的初始值的时候，调用`await()`的线程会被唤醒继续执行操作。
-由于CyclicBarrier在释放等待之后可以被重用，所以也成它为循环屏障。
-### CyclicBarrier与CountDownLatch区别
-1. CyclicBarrier可以重复使用（使用reset方法），CountDownLatch只能用一次
-2. CountDownLatch主要用于实现一个或n个线程需要等待其他线程完成某项操作之后，才能继续往下执行，
-描述的是一个或n个线程等待其他线程的关系，而CyclicBarrier是多个线程相互等待，知道满足条件以后再一起往下执行。
-描述的是多个线程相互等待的场景。
-### 使用场景
-1.多线程计算数据，最后合并计算结果的应用场景，比如用Excel保存了用户的银行流水，
-每一页保存了一个用户近一年的每一笔银行流水，现在需要统计用户的日均银行流水，
-这时候我们就可以用多线程处理每一页里的银行流水，都执行完以后，得到每一个页的日均银行流水，之后通过CyclicBarrier的action，利用这些线程的计算结果，计算出整个excel的日均流水
-- 实例1：
+每次获取多个许可
 ```java
-@Slf4j
+//每次获取多个许可
+public class SemaphoreExample2 {
+    private static int clientCount = 3;
+    private static int totalRequestCount = 10;
+
+    public static void main(String[] args) {
+        ExecutorService executorService= Executors.newCachedThreadPool();
+
+        final Semaphore semaphore=new Semaphore(clientCount);
+
+        for(int i=0;i<totalRequestCount;i++){
+            final int threadNum=i;
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        //获取多个许可
+                       semaphore.acquire(3);
+                       //并发数是3,一次性获取3个许可，同1s内无其他许可释放，相当于单线程了
+                       test(threadNum);
+                    }catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }finally {
+                        semaphore.release(3);
+                        //释放多个许可
+                    }
+                }
+            });
+        }
+        executorService.shutdown();
+    }
+
+    private static void test(int threadNum) throws InterruptedException {
+        System.out.println("run:"+threadNum);
+        Thread.sleep(1000);
+    }
+}
+/**
+ 输出结果：
+ 每隔一秒输出1个
+ run:0
+
+ run:2
+
+ run:1
+
+ run:4
+
+ run:3
+
+ run:5
+ 
+ run:6
+
+ run:7
+
+ run:8
+
+ run:9
+ * */
+```
+* 场景3：
+
+尝试获取许可
+```java
+//尝试获取一个许可
+public class SemaphoreExample3 {
+    private static int clientCount = 3;
+    private static int totalRequestCount = 10;
+
+    public static void main(String[] args) {
+        ExecutorService executorService= Executors.newCachedThreadPool();
+
+        final Semaphore semaphore=new Semaphore(clientCount);
+
+        for(int i=0;i<totalRequestCount;i++){
+            final int threadNum=i;
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        if(semaphore.tryAcquire()){
+                            ////尝试获取一个许可
+                            test(threadNum);
+                            semaphore.release();
+                        }
+                    }catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+        executorService.shutdown();
+    }
+
+    private static void test(int threadNum) throws InterruptedException {
+        System.out.println("run:"+threadNum);
+        Thread.sleep(1000);
+    }
+}
+/**
+ 输出结果：
+ run:0
+ run:1
+ run:2
+ * */
+```
+
+### CyclicBarrier
+
+用来控制多个线程互相等待，只有当多个线程都到达时，这些线程才会继续执行。
+
+和 CountdownLatch 相似，都是通过维护计数器来实现的。
+线程执行 await() 方法之后计数器会减 1，并进行等待，直到计数器为 0，所有调用 await() 方法而在等待的线程才能继续执行。
+
+CyclicBarrier 有两个构造函数，其中 parties 指示计数器的初始值，barrierAction 在所有线程都到达屏障的时候会执行一次。
+
+```java
+public CyclicBarrier(int parties, Runnable barrierAction) {
+    if (parties <= 0) throw new IllegalArgumentException();
+    this.parties = parties;
+    this.count = parties;
+    this.barrierCommand = barrierAction;
+}
+
+public CyclicBarrier(int parties) {
+    this(parties, null);
+}
+```
+<div align="center"><img src="pics//aqs//AQS_04.png" width="600"></div>
+
+
+* CyclicBarrier与CountDownLatch区别：
+
+1、CyclicBarrier可以重复使用（使用reset方法），所以它才被叫做循环屏障；CountDownLatch只能用一次
+
+2、CountDownLatch主要用于实现一个或n个线程需要等待其他线程完成某项操作之后，才能继续往下执行，描述的是一个或n个线程等待其他线程的关系；
+CyclicBarrier是多个线程相互等待，知道满足条件以后再一起往下执行，描述的是多个线程相互等待的场景。
+
+#### 使用场景
+
+多线程计算数据，最后合并计算结果的应用场景。
+
+比如用Excel保存了用户的银行流水，
+每一页保存了一个用户近一年的每一笔银行流水，现在需要统计用户的日均银行流水，
+这时候我们就可以用多线程处理每一页里的银行流水，都执行完以后，得到每一个页的日均银行流水，
+之后通过CyclicBarrier的action，利用这些线程的计算结果，计算出整个excel的日均流水。
+
+```java
 public class CyclicBarrierExample {
-
-    private static int threadCount=20;
-
-    private static CyclicBarrier cyclicBarrier=new CyclicBarrier(5);
+    private static int threadCount = 10;
 
     public static void main(String[] args) throws InterruptedException {
+        CyclicBarrier cyclicBarrier=new CyclicBarrier(5);
+
         ExecutorService executorService= Executors.newCachedThreadPool();
 
 
-
-
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < threadCount; i++) {
             final int threadNum=i;
-            Thread.sleep(1000);
             executorService.execute(()->{
                 try {
-                    race(threadNum);
-
+                    System.out.println("before..."+threadNum);
+                    cyclicBarrier.await();
+                    System.out.println("after..."+threadNum);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
             });
         }
         executorService.shutdown();
-
-
-    }
-
-    private static void test(int threadNum) throws InterruptedException {
-        log.info("{}",threadNum);
-        Thread.sleep(1000);
-    }
-
-    private static void race(int threadNum) throws Exception{
-        Thread.sleep(1000);
-        log.info("{} is ready",threadNum);
-        cyclicBarrier.await();
-        log.info("{} continue",threadNum);
-
     }
 }
-```
-## ReentrantLock
-java一共分为两类锁，一类是由synchornized修饰的锁，还有一种是JUC里提供的锁，核心就是ReentrantLock
+/**
+ * 输出结果：
+ before...1
+ before...0
+ before...2
+ before...3
+ before...4
+ before...5
+ after...4
+ after...1
+ after...0
+ after...2
+ after...3
 
+ before...6
+ before...7
+ before...8
+ before...9
+ after...9
+ after...5
+ after...6
+ after...7
+ after...8
+ */
+```
+## JUC下的锁
+Java一共分为两类锁:
+
+* 一类是由synchornized修饰的锁
+
+* 一类是JUC里提供的锁，核心就是ReentrantLock
+
+AQS锁分为独占锁和共享锁两种：
+
+* 独占锁：锁在一个时间点只能被一个线程占有。
+根据锁的获取机制，又分为“公平锁”和“非公平锁”。
+等待队列中按照FIFO的原则获取锁，等待时间越长的线程越先获取到锁，这就是公平的获取锁，即公平锁。
+而非公平锁，线程获取的锁的时候，无视等待队列直接获取锁。ReentrantLock和ReentrantReadWriteLock.Writelock是独占锁。
+
+* 共享锁：同一个时候能够被多个线程获取的锁，能被共享的锁。
+JUC包中ReentrantReadWriteLock.ReadLock，CyclicBarrier，CountDownLatch和Semaphore都是共享锁。
+
+### ReentrantLock
 ReentrantLock,它实现是一种自旋锁，通过循环调用CAS操作来实现加锁，性能较好的原因是在于**避免进入进程的内核态
-的阻塞状态**。想尽办法避免进入内核态的阻塞状态是我们设计锁的关键。
-### synchronized与ReentrantLock的区别
- | 对比维度 | synchronized | ReentrantLock |
- | -- | -- | -- |
+的阻塞状态**。
+想尽办法避免进入内核态的阻塞状态是我们设计锁的关键。
+
+* synchronized与ReentrantLock的区别
+| \ | synchronized | ReentrantLock |
+| :---: | :---: | :---: |
 | 可重入性 | 可重入  | 可重入 |
 | 锁的实现 | JVM实现，很难操作源码，得到实现 | JDK实现 |
 | 性能 | 在引入轻量级锁（偏向锁，自旋锁）后性能大大提升，建议都可以选择的时候选择synchornized | -  |
 | 功能区别 | 方便简洁，由编译器负责加锁和释放锁  | 	手工操作  |
 | 粒度 | 细粒度，可灵活控制  |  |
-| 可否指定公平锁 | 不可以 | 可以 |
+| 可否指定公平锁 | 只能是非公平锁 | 可以 |
 | 可否放弃锁 | 不可以 | 可以 |
 
-* ReentrantLock独有的功能
+* ReentrantLock独有的功能：
 
-1. 可以指定为公平锁或非公平锁；
-2. 提供了一个Condition（条件）类，可以分组唤醒需要唤醒的线程；
-3. 提供了能够中断等待锁的线程机制，`lock.lockInterruptibly()`
-## 使用场景：
-- 实例1：基本使用
+1、 可以指定为公平锁（先等待的线程先获得锁）或非公平锁；
+
 ```java
-@Slf4j
-public class ReentrantLockExample {
+/**
+      默认实现了非公平锁
+     * Creates an instance of {@code ReentrantLock}.
+     * This is equivalent to using {@code ReentrantLock(false)}.
+     */
+    public ReentrantLock() {
+        sync = new NonfairSync();
+    }
+```
 
+2、提供了一个Condition（条件）类，可以分组唤醒需要唤醒的线程；
+
+3、提供了能够中断等待锁的线程机制，`lock.lockInterruptibly()`
+
+使用synchronized计数：
+```java
+public class CountExample {
 
     //请求总数
     public static int clientTotal=5000;
@@ -365,8 +506,6 @@ public class ReentrantLockExample {
     public static int threadTotal=200;
 
     public static volatile int count=0;
-
-    private final static Lock lock=new ReentrantLock();
 
     public static void main(String[] args) throws InterruptedException {
         //创建线程池
@@ -383,7 +522,7 @@ public class ReentrantLockExample {
                     add();
                     semaphore.release();
                 }catch (Exception e){
-                    log.error("exception",e);
+                    e.printStackTrace();
                 }
                 countDownLatch.countDown();
 
@@ -392,8 +531,55 @@ public class ReentrantLockExample {
         //确保线程全部执行结束，阻塞进程，并保证
         countDownLatch.await();
         executorService.shutdown();
-        log.info("count:{}",count);
+        System.out.println("count:{"+count+"}");
+    }
 
+    private static synchronized void add(){
+        count++;
+    }
+}
+//输出结果：count:{5000}
+```
+
+使用ReentrantLock计数：
+```java
+public class CountExample2 {
+
+    //请求总数
+    public static int clientTotal=5000;
+
+    //同时并发执行的线程数
+    public static int threadTotal=200;
+
+    public static volatile int count=0;
+
+    private final static ReentrantLock lock=new ReentrantLock();
+
+    public static void main(String[] args) throws InterruptedException {
+        //创建线程池
+        ExecutorService executorService= Executors.newCachedThreadPool();
+        //定义信号量，闭锁
+        final Semaphore semaphore=new Semaphore(threadTotal);
+
+        final CountDownLatch countDownLatch=new CountDownLatch(clientTotal);
+        //模拟并发
+        for (int i = 0; i < clientTotal; i++) {
+            executorService.execute(()->{
+                try {
+                    semaphore.acquire();
+                    add();
+                    semaphore.release();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                countDownLatch.countDown();
+
+            });
+        }
+        //确保线程全部执行结束，阻塞进程，并保证
+        countDownLatch.await();
+        executorService.shutdown();
+        System.out.println("count:{"+count+"}");
     }
 
     private static void add(){
@@ -405,26 +591,23 @@ public class ReentrantLockExample {
         }
     }
 }
+//count:{5000}
 ```
-分析：
 
-- 源码中的实现：
-```java
-/**
-      默认实现了非公平锁
-     * Creates an instance of {@code ReentrantLock}.
-     * This is equivalent to using {@code ReentrantLock(false)}.
-     */
-    public ReentrantLock() {
-        sync = new NonfairSync();
-    }
-```
-## ReentrantReadWriteLock
-在没有任何读写锁的时候才能取得写入的锁，可用于实现悲观读取，读多写少的场景下可能会出现线程饥饿
-- 实例：
-```java
-public class LockExample2 {
+### ReentrantReadWriteLock
+ReentrantLock是一个排他锁，同一时间只允许一个线程访问，
+而ReentrantReadWriteLock允许多个读线程同时访问，但不允许写线程和读线程、写线程和写线程同时访问。相对于排他锁，提高了并发性。
 
+在实际应用中，大部分情况下对共享数据（如缓存）的访问都是读操作远多于写操作，
+这时ReentrantReadWriteLock能够提供比排他锁更好的并发性和吞吐量。
+
+读写锁内部维护了两个锁，一个用于读操作，一个用于写操作。
+所有 ReadWriteLock实现都必须保证 writeLock操作的内存同步效果也要保持与相关 readLock的联系。
+也就是说，**成功获取读锁的线程会看到写入锁之前版本所做的所有更新**。
+
+- 分装
+```java
+public class LockExample {
     private final Map<String,Data> map=new TreeMap();
 
     private final static ReentrantReadWriteLock lock=new ReentrantReadWriteLock();
@@ -460,92 +643,31 @@ public class LockExample2 {
         }finally {
             writeLock.unlock();
         }
-
     }
-
-
-
-
+    
     class Data{
-
+    
     }
-
 }
 ```
-## StampedLock
-它控制锁有三种模式：写、读和**乐观读**
-状态由版本和模式两个部分组成，锁获取方法是一个数字，作为票据
-（Stamped）。它用相应的锁的状态来表示和控制当前的访问
-数字0表示没有写锁被授权访问。
 
-在读锁上分为悲观读和乐观读；
-乐观读：如果读的操作很多，写操作很少的情况下，我们可以乐观的认为，读写同时发生的几率很小，因此不悲观的使用读取锁定很小，
+### StampedLock
+它控制锁有三种模式：写、读和**乐观读**
+
+状态由版本和模式两个部分组成，锁获取方法是一个数字，作为票据（Stamped）。
+它用相应的锁的状态来表示和控制当前的访问，数字0表示没有写锁被授权访问。
+
+StampedLock首先调用tryOptimisticRead方法,此时会获得一个“印戳”。然后读取值并检查票据（Stamped），是否仍然有效(例如其他线程已经获得了一个读锁)。
+如果有效,就可以使用这个值。
+如果无效,就会获得一个读锁(它会阻塞所有的写锁)
+
+在读锁上分为悲观读和乐观读：
+
+乐观读：如果读的操作很多，写操作很少的情况下，我们可以乐观的认为，读写同时发生的几率很小，因此不悲观的使用完全的读取锁定，
 程序可以在查看相关的状态之后，判断有没有写操作的变更，再采取相应的措施，这一小小的改进，可以大大提升执行效率。
 
-- 源码中的例子：
 ```java
-public class LockExample4 {
-
-    class Point {
-        private double x, y;
-        private final StampedLock sl = new StampedLock();
-
-        void move(double deltaX, double deltaY) { // an exclusively locked method
-            long stamp = sl.writeLock();
-            try {
-                x += deltaX;
-                y += deltaY;
-            } finally {
-                sl.unlockWrite(stamp);
-            }
-        }
-
-        //下面看看乐观读锁案例
-        double distanceFromOrigin() { // A read-only method
-            long stamp = sl.tryOptimisticRead(); //获得一个乐观读锁
-            double currentX = x, currentY = y;  //将两个字段读入本地局部变量
-            if (!sl.validate(stamp)) { //检查发出乐观读锁后同时是否有其他写锁发生？
-                stamp = sl.readLock();  //如果没有，我们再次获得一个读悲观锁
-                try {
-                    currentX = x; // 将两个字段读入本地局部变量
-                    currentY = y; // 将两个字段读入本地局部变量
-                } finally {
-                    sl.unlockRead(stamp);
-                }
-            }
-            return Math.sqrt(currentX * currentX + currentY * currentY);
-        }
-
-        //下面是悲观读锁案例
-        void moveIfAtOrigin(double newX, double newY) { // upgrade
-            // Could instead start with optimistic, not read mode
-            long stamp = sl.readLock();
-            try {
-                while (x == 0.0 && y == 0.0) { //循环，检查当前状态是否符合
-                    long ws = sl.tryConvertToWriteLock(stamp); //将读锁转为写锁
-                    if (ws != 0L) { //这是确认转为写锁是否成功
-                        stamp = ws; //如果成功 替换票据
-                        x = newX; //进行状态改变
-                        y = newY;  //进行状态改变
-                        break;
-                    } else { //如果不能成功转换为写锁
-                        sl.unlockRead(stamp);  //我们显式释放读锁
-                        stamp = sl.writeLock();  //显式直接进行写锁 然后再通过循环再试
-                    }
-                }
-            } finally {
-                sl.unlock(stamp); //释放读锁或写锁
-            }
-        }
-    }
-}
-```
-- 实例：基本使用
-```java
-@Slf4j
-@ThreadSafe
-public class LockExample5 {
-
+public class CountExample3 {
 
     //请求总数
     public static int clientTotal=5000;
@@ -572,7 +694,7 @@ public class LockExample5 {
                     add();
                     semaphore.release();
                 }catch (Exception e){
-                    log.error("exception",e);
+                    e.printStackTrace();
                 }
                 countDownLatch.countDown();
 
@@ -581,12 +703,11 @@ public class LockExample5 {
         //确保线程全部执行结束，阻塞进程，并保证
         countDownLatch.await();
         executorService.shutdown();
-        log.info("count:{}",count);
-
+        System.out.println("count:{"+count+"}");
     }
 
     private static void add(){
-        long stamp = lock.writeLock();
+        long stamp=lock.writeLock();
         try {
             count++;
         }finally {
@@ -594,12 +715,11 @@ public class LockExample5 {
         }
     }
 }
+//count:{5000}
 ```
 ## Condition
 ```java
-@Slf4j
-public class LockExample6 {
-
+public class LockExample2 {
     public static void main(String[] args) {
         ReentrantLock reentrantLock = new ReentrantLock();
         Condition condition = reentrantLock.newCondition();
@@ -607,38 +727,45 @@ public class LockExample6 {
         new Thread(() -> {
             try {
                 reentrantLock.lock();
-                log.info("wait signal"); // 1
-                condition.await();  //从AQS队列中移除了，加入了condition的等待队列中
+                System.out.println("wait signal");//1
+                condition.await();
+                //从AQS队列中移除锁，加入了condition的等待队列中，并释放当前锁，当其他线程调用signal()会重新请求锁。
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            log.info("get signal"); // 4
+            System.out.println("get signal");//4
             reentrantLock.unlock();
         }).start();
 
         new Thread(() -> {
             reentrantLock.lock();
-            log.info("get lock"); // 2
+            System.out.println("get lock"); //2
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            condition.signalAll();  //
-            log.info("send signal ~ "); // 3
+            condition.signal(); //当其他线程调用signal()会重新请求锁。
+            System.out.println("send signal ~ ");
             reentrantLock.unlock();
         }).start();
     }
 }
 ```
 ## 总结
-* synchronized：JVM实现，不但可以通过一些监控工具监控，而且在出现未知异常的时候JVM也会自动帮我们释放锁，不会造成死锁现象;
-* ReentrantLock、ReentrantRead/WriteLock、StempedLock 他们都是对象层面的锁定，**要想保证锁一定被释放**，要放到finally里面，才会更安全一些；
+
+* synchronized：JVM实现，不但可以通过一些监控工具监控，而且在出现未知异常的时候JVM也会自动帮我们释放锁，
+不会造成死锁现象;
+
+* ReentrantLock、ReentrantRead/WriteLock、StempedLock 他们都是对象层面的锁定，
+**要想保证锁一定被释放**，要放到finally里面，才会更安全一些；
 StampedLock对性能有很大的改进，特别是在读线程越来越多的情况下，
 
-### 如何使用
-1. 在只有少量竞争者的时候，synchronized是一个很好的锁的实现
-2. 竞争者不少，但是增长的趋势是可以预估的，ReentrantLock是一个很好的锁的实现（适合自己的才是最好的，不是越高级越好）
+使用:
+
+1、在只有少量竞争者的时候，synchronized是一个很好的锁的实现
+
+2、竞争者不少，但是增长的趋势是可以预估的，ReentrantLock是一个很好的锁的实现（适合自己的才是最好的，不是越高级越好）
 
 
 
