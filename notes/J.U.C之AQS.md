@@ -13,7 +13,6 @@
         * [StampedLock](#StampedLock)
         * [Condition](#Condition)
     * [总结](#总结)
-    
 <!-- GFM-TOC -->
 
 # J.U.C之AQS
