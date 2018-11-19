@@ -39,3 +39,20 @@
 - [线程安全策略](https://github.com/DuHouAn/ConcurrencyNotes/blob/master/notes/%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5.md)
 
 - [线程安全策略相关代码](https://github.com/DuHouAn/ConcurrencyNotes/tree/master/src/main/java/code_02_threadSafeStrategy)
+
+### JUC之AQS
+
+- [JUC之AQS](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/J.U.C%E4%B9%8BAQS.md)
+
+### JUC之其他组件
+
+- [JUC之其他组件](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/J.U.C%E4%B9%8B%E5%85%B6%E4%BB%96%E7%BB%84%E4%BB%B6.md)
+
+### 线程池
+
+- [线程池](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/%E7%BA%BF%E7%A8%8B%E6%B1%A0.md)
+
+### 多线程并发拓展
+
+- [多线程并发拓展](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%B9%B6%E5%8F%91%E6%8B%93%E5%B1%95.md)
+
