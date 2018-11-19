@@ -56,3 +56,6 @@
 
 - [多线程并发拓展](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%B9%B6%E5%8F%91%E6%8B%93%E5%B1%95.md)
 
+## 参考资料
+[CL0610之java并发仓库](https://github.com/CL0610/Java-concurrency)
+[慕课网课程之Java并发编程入门与高并发面试](https://coding.imooc.com/class/195.html)
