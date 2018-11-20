@@ -60,3 +60,5 @@
 [CL0610之java并发仓库](https://github.com/CL0610/Java-concurrency)
 
 [慕课网课程之Java并发编程入门与高并发面试](https://coding.imooc.com/class/195.html)
+
+[《Java并发编程的艺术》](https://book.douban.com/subject/26591326/)
