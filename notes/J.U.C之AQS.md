@@ -49,6 +49,8 @@ AQS：AbstractQueuedSynchronizer，即队列同步器。
 
 基于以上思路，JDK中实现了我们常用的AQS的子类。
 
+[补充内容](https://github.com/CL0610/Java-concurrency/blob/master/08.%E5%88%9D%E8%AF%86Lock%E4%B8%8EAbstractQueuedSynchronizer(AQS)/%E5%88%9D%E8%AF%86Lock%E4%B8%8EAbstractQueuedSynchronizer(AQS).md)
+
 ## 同步组件
 ### CountDownLatch
 用来控制一个线程等待多个线程。
