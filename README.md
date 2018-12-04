@@ -44,9 +44,9 @@
 
 - [JUC之AQS](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/J.U.C%E4%B9%8BAQS.md)
 
-### JUC之其他组件
+### JUC之并发容器和框架
 
-- [JUC之其他组件](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/J.U.C%E4%B9%8B%E5%85%B6%E4%BB%96%E7%BB%84%E4%BB%B6.md)
+- [JUC之并发容器和框架](https://github.com/IvanLu1024/ConcurrencyNotes/blob/master/notes/J.U.C%E4%B9%8B%E5%85%B6%E4%BB%96%E7%BB%84%E4%BB%B6.md)
 
 ### 线程池
 
